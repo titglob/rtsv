@@ -1,3 +1,5 @@
+Le project rtsv permet d'inser dans votre projet certaines fonction d'api afin de faciler le debogge d'applications temps réel. Le résulat d'analyse peut provenir
+de multiples sources et sont collectées par un serveur. Des fichiers waves analyzables avec gtwave ansi que des messages sequence chart sont générés dans des fichiers pdf. L'api est utilisable directement dans du code C mais aussi dans un bacth en ligne de commande.
 
 Définition du besoin:
 ---------------------
@@ -26,13 +28,14 @@ On a besoin de plusieurs briques logicielles:
       * permettre de grouper les objects en groupes ou sous groupes
       * support d'un mode de batch pour pouvoir avancer en pas a pas
       * utiliser des fichiers de configuration pour du formattage spécifique ex:
-         # affiner l'ordre des process
-         # choisir un formattage différents pour les objets (couleur, style)
+         * affiner l'ordre des process
+         * choisir un formattage différents pour les objets (couleur, style)
 
    - une interface C pour instrumenter le code, avec une implémentation spécifique librarie spécifique
    - une implémentation spéficique pour chaque processeur pour
       * implémenter les fonctions d'api, ex:
-         => rt_inittask((t_object_id)tid, "HAL"):
+
+          rt_inittask((t_object_id)tid, "HAL"):
                int n = rt_pack_msg(rt_buffer, RTSV_DEF_CMD_INITTASK, id, 0, obj_name)
                mbx->send(rt_buffer, n);
 
