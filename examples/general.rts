@@ -1,0 +1,107 @@
+decl_task      @0 1 User
+decl_task      @0 2 Machine 1
+decl_task      @0 3 Machine 2
+decl_task      @0 4 Machine 3
+
+# ceci est un commentaire
+
+decl_real      @0 10 reel 
+decl_reg       @0 11 32 reg 
+decl_param     @0 12 6 param
+decl_string    @0 13 str
+decl_bool      @0 14 bool
+decl_wire      @0 15 5 wire
+decl_event     @0 17 event
+decl_time      @0 18 16 time
+
+ready          @0 1
+ready          @0 2
+ready          @0 3
+ready          @0 4
+
+set_state      @0 1 IDLE
+set_state      @0 2 IDLE
+set_state      @0 3 IDLE
+set_state      @0 4 IDLE
+
+set_real       @1 10 -35
+set_reg        @1 11 0x13
+set_param      @1 12 0xc
+set_string     @1 13 coucou les copains
+set_bool       @1 14 1
+set_wire       @1 15 1
+set_event      @1 17
+set_time       @1 18 0
+
+send_msg       @2 3 4 continue
+recv_msg       @2 3 4 continue
+wait           @2 3
+send_msg       @2 2 3 startm2
+
+recv_msg       @3 2 3 startm2
+ready          @4 3
+send_msg       @4 2 3 sendlost
+comment        @4 4 start
+send_msg       @4 4 1 output
+
+
+set_real       @4 10 35
+set_reg        @4 11 0x31
+set_param      @4 12 0x1
+set_string     @4 13 hello
+set_bool       @4 14 0
+set_wire       @4 15 2
+set_event      @4 17
+set_time       @4 18 4
+
+del_var        @5 10
+del_var        @5 11
+del_var        @5 12
+del_var        @5 13
+
+send_msg       @5 2 1 free
+recv_msg       @5 2 1 free
+set_event      @5 17
+comment        @6 1 end
+recv_msg       @6 4 1 output
+
+del_var        @7 14
+del_var        @7 15
+del_var        @7 17
+del_var        @7 18
+
+set_state      @7 1 PENDING
+recv_msg       @8 2 1 recvlost
+set_timer      @9 1 timer
+action         @11 3 todo
+timeout        @11 1 timer
+set_timer      @12 1 0xE timer
+stop_timer     @15 1 0xE timer
+set_timer      @16 1 timer
+create_task    @17 4 5 name
+ready          @18 5
+set_state      @18 5 CREATED
+del_task       @19 4 5
+set_state      @19 3 T1
+action         @20 3 something
+stop_timer     @23 1 timer
+create_mutex   @24 1 6 lock
+take           @25 4 6
+acquire        @26 6 4
+take           @27 3 6
+preempt        @27 3
+give           @28 4 6
+acquire        @29 6 3
+give           @31 3 6
+ready          @31 6
+
+create_object  @34 4 7 Class class 
+call           @35 4 7 method
+set_state      @36 7 STATE
+create_object  @37 7 8 Subclass subc 
+call           @38 7 8 f
+return         @39 8 7
+return         @40 7 4
+del_object     @41 1 8
+del_object     @42 7 7
+del_mutex      @43 1 6

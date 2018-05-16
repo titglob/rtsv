@@ -1,0 +1,79 @@
+ ACTION   :  SYNTAX                     |MSC|WAV|DOT| description
+initinst  :  id "InstName"              | x | x | x | =>      static process initialization
+initmutex :  id "MutexName"             | x | x | x | =>      static mutex inititalization
+initobj   :  id "ObjName"               | x |   | x | =>      
+sendmsg   :  idfrom idto "message"      | x | x | x | =>      
+call      :  idfrom idto "message"      | x |   |   | =>      
+recvmsg   :  idfrom idto "message"      | x | x | x | =>      
+waitmsg   :  id                         | x | x | x | =>      
+condstart :  id "contition"             | x |   | x | =>      
+condend   :  id                         | x |   | x | =>      
+osswitch  :  idfrom idto                | x | x |   | =>      
+return    :  idfrom idto                | x |   |   | =>      
+comment   :  id  "text"                 | x |   | x | =>      
+action    :  id  "doit"                 | x |   | x | =>      
+settimer  :  id  "timer"                | x | x | x | =>      
+exptimer  :  id  "timer"                | x | x | x | =>      
+stoptimer :  id  "name"                 | x | x | x | =>      
+osrun     :  id                         | x | x |   | =>      
+ossave    :  id                         | x | x |   | =>      
+ossuspend :  id                         | x | x |   | =>      
+creatinst :  idfrom idinst   "name"     | x | x | x | =>      
+creatmutex:  idfrom idmut    "name"     | x | x | x | =>      
+creatobj  :  idfrom idobj    "name"     | x |   | x | =>      
+takemutex :  idfrom idmut               | x | x | x | =>      
+givemutex :  idfrom idmut               | x | x | x | =>      
+delmutex  :  idfrom idmut               | x | x | x | =>      
+delinst   :  id                         | x | x | x | =>      
+declbool  :  var def_bool               |   | x |   | =>      
+declwire  :  var def_wire               |   | x |   | =>      
+declint   :  var def_integer            |   | x |   | =>      
+declreal  :  var def_real               |   | x |   | =>      
+declstring:  var def_string             |   | x |   | =>      
+declstate :  var def_state              | x | x |   | =>      
+setint    :  var integer                |   | x |   | =>      
+setdouble :  var double                 |   | x |   | =>      
+setstring :  var string                 |   | x |   | =>      
+setstate  :  var state                  |   | x |   | =>      
+startgrp  :  id  "groupName"            | x | x | x | =>      
+endgrp    :  id                         | x | x | x | =>      
+
+Transcription:
+--------------
+[initinst  :  id "TypeName" "InstName"]
+   <msclatex>  '\declinst{id]{TypeName}{InstName}'
+   <waves>     ''
+
+
+
+
+Example pour tracer un msc typique:
+1   initinst :  usr "User" ""
+1   initinst :  m1 "Machine 1" "control"
+1   initinst :  m2 "Machine 2" "drill"
+1   initinst :  m3 "Machine 3" "test"
+2   msgsend  :  m1 m2 "startm2"
+2   msgrecv  :  m1 m2 "startm2"
+3   msgsend  :  m2 m3 "continue"
+3   osswitch :  m1 m3
+4   msgsend  :  m1 envleft "log"
+4   msgrecv  :  m1 envleft "log"
+4   comment  :  m3 "start"
+4   msgsend  :  m3 usr "output"
+5   msgsend  :  m1 usr "free"
+5   msgrecv  :  m1 usr "free"
+6   comment  :  usr "end"
+6   msgrecv  :  m3 usr "output"
+7   action   :  usr "doit"
+8   settimer :  usr "timer"
+10  exptimer :  usr "timer"
+11  settimer :  usr "timer"
+13  stoptimer: usr "name"
+19  osrun    : m1
+20  ossave   : m1
+21  ossuspend: m1
+24  creatinst: m3 m4 "name"
+26  delinst  : m4
+
+
+
