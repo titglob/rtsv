@@ -1,3 +1,5 @@
+Le project rtsv permet d'inser dans votre projet certaines fonction d'api afin de faciler le debogge d'applications temps réel. Le résulat d'analyse peut provenir
+de multiples sources et sont collectées par un serveur. Des fichiers waves analyzables avec gtwave ansi que des messages sequence chart sont générés dans des fichiers pdf. L'api est utilisable directement dans du code C mais aussi dans un bacth en ligne de commande.
 
 Définition du besoin:
 ---------------------
