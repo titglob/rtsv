@@ -5,13 +5,13 @@
 
 
 
-create_group   @4 #0 1000 vpu
+create_group   @0 #0 1000 vpu
 
-decl_task      @5 #1000 1 main
-set_global     @5 1 2000
+decl_task      @0 #1000 1 leonStartup
+set_global     @0 1 2000
 
-decl_task      @5 #1000 2 dmaIsr
-decl_task      @5 #1000 3 mbxIsr
+decl_task      @0 #1000 2 dmaIsr
+decl_task      @0 #1000 3 mbxIsr
 
 action         @6  1 init vpu
 action         @7  1 init dma
@@ -20,12 +20,15 @@ action         @9  1 init mailbox
 wait           @10 1
 set_state      @10 1 WAITMSG
 
-run            @11 2
-ready          @12 2
-
 ready          @13 1
 recv_msg       @13 1 2000 vsfunc\_alloc
+set_state      @13 1 RUN
 action         @14 1 execute vsfunc\_alloc
 recv_msg       @15 1 2000 vsfunc\_mul
 action         @16 1 execute vsfunc\_mul
 
+recv_msg       @17 2 1 irq
+run            @17 2
+ready          @18 2
+wait           @18 1
+set_state      @18 1 WAITMSG

@@ -82,3 +82,5 @@ Les objects générés peuvent être classés en groupes, nécessaires pour orga
 
 
 
+sudo apt install texlive-pstricks
+sudo apt install texlive-latex-extra

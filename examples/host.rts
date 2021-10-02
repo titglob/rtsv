@@ -1,6 +1,7 @@
 create_group   @0 1000 host
 
 decl_task      @0 #1000 1 main
+action         @0 1 init
 action         @1 1 create the hierarchy
 action         @2 1 bind ports together
 action         @3 1 sys::run()

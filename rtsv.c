@@ -99,6 +99,29 @@ typedef enum object_status
 object_status_t;
 
 /**
+ * msc mark granularity
+ */
+typedef enum msc_mark_granularity
+{
+   MSC_MARK_GRANULARITY_NONE,
+   MSC_MARK_GRANULARITY_PAGE,
+   MSC_MARK_GRANULARITY_LEVEL
+}
+msc_mark_granularity_t;
+
+/**
+ * msc mark display
+ */
+typedef enum msc_mark_display
+{
+   MSC_MARK_DISPLAY_NONE,
+   MSC_MARK_DISPLAY_REALTIME,
+   MSC_MARK_DISPLAY_LEVEL,
+   MSC_MARK_DISPLAY_BOTH
+}
+msc_mark_display_t;
+
+/**
  * log level
  */
 int rt_log_level = DEBUG_ERROR;
@@ -209,6 +232,11 @@ rt_time_t msc_page_max_levels = 30;
 int msc_level_height = 10;
 
 /**
+ * len of the boxes
+ */
+int msc_box_height = 8;
+
+/**
  * distance, in mm, between two instances
  */
 int msc_inst_dist = 30;
@@ -222,6 +250,16 @@ int msc_page_instances = 0;
  * maximum number of msc instances per page in the whole document
  */
 int msc_max_instances = 0;
+
+/**
+ * msc mark granularity
+ */
+msc_mark_granularity_t msc_mark_grain = MSC_MARK_GRANULARITY_PAGE;
+
+/**
+ * msc mark granularity
+ */
+msc_mark_display_t msc_mark_disp = MSC_MARK_DISPLAY_BOTH;
 
 /**
  * current timed or untimed level for msc.
@@ -646,7 +684,7 @@ int msc_new_doc(int fd)
    write_line(fd, "\\usepackage{msc}\n");
    write_line(fd, "\\usepackage{geometry}\n");
    write_line(fd, "\\geometry{paperwidth=PAPERWIDTHmm, paperheight=PAPERHEIGHTmm}\n");
-   write_line(fd, "\\geometry{top=1cm, bottom=1cm, left=2cm , right=2cm}\n");
+   write_line(fd, "\\geometry{top=1cm, bottom=1cm, left=1cm , right=1cm}\n");
    write_line(fd, "\\begin{document}\n");
    return 0;
 }
@@ -796,20 +834,38 @@ int msc_dump_start(int fd, char * title, rt_time_t time)
 {
    write_line(fd, "\\begin{msc}{%s}\n", title);
    write_line(fd, "\\setlength{\\topheaddist}{%dmm}\n",      msc_level_height);
-   write_line(fd, "\\setlength{\\firstlevelheight}{%dmm}\n", msc_level_height);
    write_line(fd, "\\setlength{\\levelheight}{%dmm}\n",      msc_level_height);
-   write_line(fd, "\\setlength{\\actionheight}{%dmm}\n",     msc_level_height);
-   write_line(fd, "\\setlength{\\conditionheight}{%dmm}\n",  msc_level_height);
    write_line(fd, "\\setlength{\\bottomfootdist}{%dmm}\n",   msc_level_height);
-   write_line(fd, "\\setlength{\\lastlevelheight}{%dmm}\n",  msc_level_height);
+   write_line(fd, "\\setlength{\\bottomfootdist}{%dmm}\n",   msc_level_height);
+   write_line(fd, "\\setlength{\\actionheight}{%dmm}\n",     msc_box_height);
+   write_line(fd, "\\setlength{\\conditionheight}{%dmm}\n",  msc_box_height);
+   write_line(fd, "\\setlength{\\instheadheight}{%dmm}\n",   msc_box_height);
+   write_line(fd, "\\setlength{\\firstlevelheight}{%dmm}\n", msc_box_height);
+   write_line(fd, "\\setlength{\\lastlevelheight}{%dmm}\n",  msc_box_height);
+   write_line(fd, "\\setlength{\\instdist}{%dmm}\n",         msc_inst_dist);
+   write_line(fd, "\\setlength{\\envinstdist}{\\instdist}\n");
    write_line(fd, "\\setlength{\\instfootheight}{%dmm}\n",   3);
-   write_line(fd, "\\setlength{\\bottomfootdist}{%dmm}\n",   msc_level_height);
+   write_line(fd, "\\setlength{\\markdist}{%dmm}\n",         0);
 
    msc_page_instances = 0;
 
    for_each_object(&top, msc_redraw, NULL);
 
-   write_line(fd, "\\mscmark[bl]{%d : %d}{envleft}\n", time, msc_level);
+   if(msc_mark_grain == MSC_MARK_GRANULARITY_PAGE) {
+      switch(msc_mark_disp) {
+         case MSC_MARK_DISPLAY_NONE:
+            break;
+         case MSC_MARK_DISPLAY_BOTH:
+            write_line(fd, "\\mscmark[bl]{%d : %d}{envleft}\n", time, msc_level);
+            break;
+         case MSC_MARK_DISPLAY_REALTIME:
+            write_line(fd, "\\mscmark[bl]{%d}{envleft}\n", time);
+            break;
+         case MSC_MARK_DISPLAY_LEVEL:
+            write_line(fd, "\\mscmark[bl]{%d}{envleft}\n", msc_level);
+            break;
+      }
+   }
 
    return 0;
 }
@@ -1057,7 +1113,22 @@ int vcd_dump_start(int fd, rt_time_t time)
  */
 int msc_dump_stop(int fd, rt_time_t time)
 {
-   write_line(fd, "\\mscmark[tl]{%d :%d}{envleft}\n", time, msc_level);
+   if(msc_mark_grain == MSC_MARK_GRANULARITY_PAGE) {
+      switch(msc_mark_disp) {
+         case MSC_MARK_DISPLAY_NONE:
+            break;
+         case MSC_MARK_DISPLAY_BOTH:
+            write_line(fd, "\\mscmark[tl]{%d : %d}{envleft}\n", time, msc_level);
+            break;
+         case MSC_MARK_DISPLAY_REALTIME:
+            write_line(fd, "\\mscmark[tl]{%d}{envleft}\n", time);
+            break;
+         case MSC_MARK_DISPLAY_LEVEL:
+            write_line(fd, "\\mscmark[tl]{%d}{envleft}\n", msc_level);
+            break;
+      }
+   }
+
    write_line(fd, "\\end{msc}\n");
 
    if(msc_page_instances > msc_max_instances)
@@ -1352,7 +1423,7 @@ void exec_sleep(struct rt_msg * m)
    if(vcd_out)
    {
       if(m->obj1->status != RT_OBJECT_WAIT)
-         write_line(vcd_fd, "0^%x $end\n", m->obj1);
+         write_line(vcd_fd, "1^%x $end\n", m->obj1);
    }
 
    m->obj1->status = RT_OBJECT_WAIT;
@@ -2776,6 +2847,7 @@ int process_cmd(struct rt_msg * m)
 
             // update next level
             write_line(msc_fd, "\\nextlevel[%d]\n", msc_get_time(m) - msc_level);
+
          }
 
          // set new time
@@ -2785,6 +2857,21 @@ int process_cmd(struct rt_msg * m)
          {
             // add a comment
             write_line(msc_fd, "%%level=%d\n", msc_level);
+            if(msc_mark_grain == MSC_MARK_GRANULARITY_LEVEL) {
+               switch(msc_mark_disp) {
+                  case MSC_MARK_DISPLAY_NONE:
+                     break;
+                  case MSC_MARK_DISPLAY_BOTH:
+                     write_line(msc_fd, "\\mscmark[bl]{%d : %d}{envleft}\n", m->time, msc_level);
+                     break;
+                  case MSC_MARK_DISPLAY_REALTIME:
+                     write_line(msc_fd, "\\mscmark[bl]{%d}{envleft}\n", m->time);
+                     break;
+                  case MSC_MARK_DISPLAY_LEVEL:
+                     write_line(msc_fd, "\\mscmark[bl]{%d}{envleft}\n", msc_level);
+                     break;
+               }
+            }
          }
       }
       else if (msc_get_time(m) < msc_level)
@@ -3081,8 +3168,12 @@ void display_help()
    fprintf(stdout, "\t-log <level>           : 0=NONE, 1=ASSERT, 2=ERROR, 3=INFO, 4=VERB\n");
    fprintf(stdout, "\t-msc_untimed           : increase time one by one for msc\n");
    fprintf(stdout, "\t-msc_out               : 0=OFF 1=ON(def). automatically start dumping at the beginning\n");
-   fprintf(stdout, "\t-msc_level_height <mm> : float value representing the size, in cm, of one level\n");
+   fprintf(stdout, "\t-vcd_out               : 0=OFF 1=ON(def). automatically start dumping at the beginning\n");
+   fprintf(stdout, "\t-msc_level_height <mm> : size in mm of one level\n");
+   fprintf(stdout, "\t-msc_box_height   <mm> : size in mm of box inside one level\n");
    fprintf(stdout, "\t-msc_inst_dist    <mm> : size of a pdf page width, in mm\n");
+   fprintf(stdout, "\t-msc_mark_grain   <m>  : mark granularity 0:none, 1:page, 2:level\n");
+   fprintf(stdout, "\t-msc_mark_disp    <m>  : mark display 0:none, 1:real, 2:level, 3=both\n");
    fprintf(stdout, "\t-vcd_untimed           : increase time one by one for vcd\n");
 }
 
@@ -3141,11 +3232,17 @@ int main(int argc, char ** argv)
    gopt_integer(&rt_queue_flush,      "-queue", args);
    gopt_integer(&msc_inst_dist,       "-msc_inst_dist", args);
    gopt_integer(&msc_level_height,    "-msc_level_height", args);
+   gopt_integer(&msc_box_height,      "-msc_box_height", args);
    gopt_integer(&msc_page_max_levels, "-msc_page_max_levels", args);
    gopt_integer(&msc_out,             "-msc_out", args);
+   gopt_integer(&vcd_out,             "-vcd_out", args);
+
+   gopt_integer((int*)&msc_mark_disp,  "-msc_mark_disp", args);
+   gopt_integer((int*)&msc_mark_grain, "-msc_mark_grain", args);
 
    printf("msc_page_max_levels  = %d\n", msc_page_max_levels);
    printf("msc_level_height     = %d\n", msc_level_height);
+   printf("msc_box_height       = %d\n", msc_box_height);
    printf("msc_inst_dist        = %d\n", msc_inst_dist);
    printf("msc_out              = %d\n", msc_out);
 
@@ -3341,7 +3438,7 @@ int main(int argc, char ** argv)
 
       // compute the maximum number of levels per page
       int msc_page_height = (msc_page_max_levels + 7) * msc_level_height;
-      int msc_page_width =  (msc_max_instances + 2) * msc_inst_dist;
+      int msc_page_width =  (msc_max_instances + 2 /*env left + env right */ - 1) * msc_inst_dist + 20 /* left + right margin */;
 
       // replace PAPERWIDTH and PAPERHEIGHT by the adequate value
       string_printf(cmd, "sed 's/PAPERWIDTH/%d/g;s/PAPERHEIGHT/%d/g' /tmp/msc_doc > %s",
