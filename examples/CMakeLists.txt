@@ -1,6 +1,6 @@
 
 set(RTSV_EX ${CMAKE_CURRENT_SOURCE_DIR})
-set(RTSV_CMD -queue 100 -vcd_out 1 -msc_out 1 -msc_page_max_levels 10 -msc_inst_dist 40 -msc_box_height 8 -msc_level_height 10 -msc_mark_grain 2 -msc_mark_disp 1)
+set(RTSV_CMD -queue 100 -vcd_out 1 -msc_out 1 -msc_page_max_levels 30 -msc_inst_dist 40 -msc_box_height 8 -msc_level_height 10 -msc_mark_grain 2 -msc_mark_disp 1)
 
 # full feature single processor example
 add_custom_command(OUTPUT general.pdf

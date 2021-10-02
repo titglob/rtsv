@@ -1,3 +1,6 @@
+
+create_group   @0 #0 0 t
+
 decl_task      @0 1 User
 decl_task      @0 2 Machine 1
 decl_task      @0 3 Machine 2

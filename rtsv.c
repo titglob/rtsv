@@ -399,13 +399,31 @@ struct find_info
 /**
  * An iterator function for the find_object method
  */
-static int find_object_iterator(struct rt_object *k, int exit, void * data)
+static int find_local_object_iterator(struct rt_object *k, int exit, void * data)
 {
    struct find_info * inf = ((struct find_info *)data);
 
-   if((!k->zombie)                                                             // find among existing objects
-   && (((k->oid == inf->oid) && (k->fid == inf->fid))       // source processor file matching is optional
-     ||((k->global) && (inf->global) && (k->global_id == inf->oid))))                        // source processor file matching is optional
+   if((!k->zombie)                                          // find among existing objects
+   && ((k->oid == inf->oid) && (k->fid == inf->fid)))       // source processor file matching is optional
+   {
+      inf->found_obj = k;
+      return 1;
+   }
+   else
+   {
+      return 0;
+   }
+}
+
+/**
+ * An iterator function for the find_object method
+ */
+static int find_global_object_iterator(struct rt_object *k, int exit, void * data)
+{
+   struct find_info * inf = ((struct find_info *)data);
+
+   if((!k->zombie)                                           // find among existing objects
+   && ((k->global) && (k->global_id == inf->oid)))           // source processor file matching is optional
    {
       inf->found_obj = k;
       return 1;
@@ -441,23 +459,51 @@ static int find_reusable_object_iterator(struct rt_object *k, int exit, void * d
 
 
 /**
- * find an object given its oid and fid.
- * If globally field is set and the serach fails locally first, then a second pass is done ignoring the fd field
+ * find an oid among local objects.
  */
-struct rt_object * find_object(int fid, object_id_t oid, int globally)
+struct rt_object * find_local_object(int fid, object_id_t oid)
 {
    struct find_info inf;
 
    inf.fid       = fid;
    inf.oid       = oid;
    inf.found_obj = NULL;
-   inf.global    = globally;
 
    // VERB("find obj %x zombie=%d\n", oid, zombies);
-   for_each_object(&top, find_object_iterator, &inf);
+   for_each_object(&top, find_local_object_iterator, &inf);
 
    return inf.found_obj;
 }
+
+/**
+ * find an oid among global objects.
+ */
+struct rt_object * find_global_object(object_id_t oid)
+{
+   struct find_info inf;
+
+   inf.oid       = oid;
+   inf.found_obj = NULL;
+
+   // VERB("find obj %x zombie=%d\n", oid, zombies);
+   for_each_object(&top, find_global_object_iterator, &inf);
+
+   return inf.found_obj;
+}
+
+/**
+ * find an object given its oid and fid.
+ * First search locally, and if not found find globally
+ */
+struct rt_object * find_object(int fid, object_id_t oid)
+{
+	 struct rt_object * obj = find_local_object(fid, oid);
+	 if(!obj)
+		 obj = find_global_object(oid);
+   return obj;
+}
+
+
 
 /**
  * find a zombie object having the same type, name, fid and group
@@ -581,7 +627,7 @@ struct rt_object * add_object(int fid, object_id_t oid, object_type_t type, stru
 {
    struct rt_object * obj;
    int light = 0;
-   obj = find_object(fid, oid, 0); // object cannot exists on the same fid/oid, but can exists globally
+   obj = find_local_object(fid, oid); // object cannot exists on the same fid/oid, but can exists globally
    if(obj)
    {
       ERROR("Cannot add object '%s' with existing identifier fid=%x oid %x zombie=%d\n", name, obj->fid, obj->oid, obj->zombie);
@@ -630,7 +676,7 @@ void del_object(struct rt_object * obj)
 int del_object_by_id(int fid, object_id_t oid, int zombie)
 {
    struct rt_object * obj;
-   obj = find_object(fid, oid, 0);
+   obj = find_local_object(fid, oid);
    if(obj == NULL)
    {
       ERROR("cannot del object with oid %x, not found\n", oid);
@@ -1235,12 +1281,18 @@ struct rt_msg * msc_find_msg(struct rt_msg * m)
 {
    list_node_t * node;
    struct rt_msg * k;
+	 struct rt_object * obj1 = find_object(m->fid, m->id1);
+	 if(!obj1)
+		 return NULL;
+	 struct rt_object * obj2 = find_object(m->fid, m->id2);
+	 if(!obj2)
+		 return NULL;
    list_for_each(node, &rt_queue)
    {
       k = list_entry(node, struct rt_msg, node);
-      if ((k->id1 == m->id1) 
-       && (k->id2 == m->id2)
-       && (string_cmp(k->text, m->text) == 0))
+      if( (string_cmp(k->text, m->text) == 0)
+	     && (find_object(k->fid, k->id1) == obj1) 
+       && (find_object(k->fid, k->id2) == obj2))
       {
          return k;
       }
@@ -1348,6 +1400,7 @@ int msc_find_corr(struct rt_msg * m)
          }
          else
          {
+					 	INFO("correlation found");
             m->off  = msc_get_time(k) - msc_get_time(m);
             k->off  = -m->off;
             k->corr = m;
@@ -2544,7 +2597,7 @@ int check_params(struct rt_msg * m, int chk_group, int chk_param1, int chk_param
 {
    if(chk_group != RT_NONE) // group zero corresponds to the implicit 'top', so is accepted
    {
-      m->group = find_object(m->fid, m->gid, 1); // allow seraching globally if locally not found
+      m->group = find_object(m->fid, m->gid); // allow seraching globally if locally not found
       if(m->group == NULL)
       {
          ERROR("Bad group reference : cmd '%s' at @%d\n", rt_cmd_name(m->cmd), m->time);
@@ -2556,11 +2609,12 @@ int check_params(struct rt_msg * m, int chk_group, int chk_param1, int chk_param
          print_msg(m);
          return -1;
       }
+      VERB("ref object '%s' fid=%x oid %x\n", m->group->name, m->group->fid, m->group->oid);
    }
 
    if(chk_param1 != RT_NONE)
    {
-      m->obj1 = find_object(m->fid, m->id1, 1); // allow seraching globally if locally not found
+      m->obj1 = find_object(m->fid, m->id1); // allow seraching globally if locally not found
       if(m->obj1 == NULL)
       {
          ERROR("Bad identifier1 reference %x : cmd '%s' at @%d\n", m->id1, rt_cmd_name(m->cmd), m->time);
@@ -2572,11 +2626,12 @@ int check_params(struct rt_msg * m, int chk_group, int chk_param1, int chk_param
          print_msg(m);
          return -1;
       }
+      VERB("ref object '%s' fid=%x oid %x\n", m->obj1->name, m->obj1->fid, m->obj1->oid);
    }
 
    if(chk_param2 != RT_NONE)
    {
-      m->obj2 = find_object(m->fid, m->id2, 1); // allow seraching globally if locally not found
+      m->obj2 = find_object(m->fid, m->id2); // allow seraching globally if locally not found
       if(m->obj2 == NULL)
       {
          ERROR("Bad identifier2 reference %x : cmd '%s' at @%d\n", m->id2, rt_cmd_name(m->cmd), m->time);
@@ -2587,6 +2642,7 @@ int check_params(struct rt_msg * m, int chk_group, int chk_param1, int chk_param
          ERROR("Bad identifier2 type : cmd '%s' at @%d as invalid type %s\n", rt_cmd_name(m->cmd), m->time, rt_type_name(m->obj2->type));
          return -1;
       }
+      VERB("ref object '%s' fid=%x oid %x\n", m->obj2->name, m->obj2->fid, m->obj2->oid);
    }
    return 0;
 }
@@ -3036,7 +3092,7 @@ void add_msg(struct rt_msg * m)
       list_add_tail(&m->node, &rt_queue);
    }
    /* retrive the top of the queue */
-   else if (m->time >= list_entry(rt_queue.pprev, struct rt_msg, node)->time)
+   else if (m->time > list_entry(rt_queue.pprev, struct rt_msg, node)->time)
    {
       VERB("=> add_tail + flush queue\n");
       list_add_tail(&m->node, &rt_queue);
@@ -3050,17 +3106,30 @@ void add_msg(struct rt_msg * m)
 
       flush_queue();
    }
+	 /* priorize send_msg and timer_msg */
+   else if ((m->time == list_entry(rt_queue.pnext, struct rt_msg, node)->time)
+		  	 && ((m->cmd == RT_DEF_CMD_SENDMSG) || (m->cmd == RT_DEF_CMD_TIMEOUT)))
+   {
+      VERB("=> add_head + flush queue\n");
+      list_add_head(&m->node, &rt_queue);
+
+      flush_queue();
+   }
    else
    {
+		  /* for most messages >= is the best choice. For send msg and timeout we need a > to prioritize */
+			int strict = ((m->cmd == RT_DEF_CMD_SENDMSG) || (m->cmd == RT_DEF_CMD_TIMEOUT)) ? 1 : 0;
+
       /* msg will be inserted in ascending order, starting from the newest ones (most probable) */
       list_for_each_rev(node, &rt_queue)
       {
          mbis = list_entry(node, struct rt_msg, node);
-         if (m->time >= mbis->time)
-         {
-            VERB("=> add_middle\n");
-            list_insert_after(&m->node, &mbis->node);
-            break;
+				 /* si m est un  */
+         if (m->time >= mbis->time + strict)
+			   {
+						VERB("=> add_middle strict=%d\n", strict);
+						list_insert_after(&m->node, &mbis->node);
+						break;
          }
       }
    }
@@ -3210,6 +3279,7 @@ int main(int argc, char ** argv)
    // init top
    init_object(&top, "top", 0, 0, RT_GROUP, NULL, 0);
    top.global = 1;
+   top.global_id = 0;
 
    // options
    gopt_format(argc, argv, args, sizeof(args));
