@@ -80,7 +80,7 @@ Si le plus vieux a une date "inférieure" à celle du plus récent d'au moins un
 Les objects générés peuvent être classés en groupes, nécessaires pour organiser et afficher plus clairement les données ou taches. On n'interdit pas les objets provenant de fichiers différents de faire partie d'un même groupe. l'id de chaque object reste unique. Au sein d'un groupe, les objects sont triés par ordre d'arrivé. Les groupes sont eux même des objets, donc possèdent un id unique. Graphiquement parlant, l'affichage des instances de msc ou des symbols vcd seront regroupés. Pour les msc comme pour les vcd, déclarer à postérieurie une instance pose problème car il faut connaitre la hierachie des le début. Ainsi, pour les vcd, le fichier de définition sera réellement écrit à la fin (sauf mode fifo), et pour les msc, à chaque nouvelle page l'ordre par groupe est rétablit mais sur une même page.
 
 
-
-
+Packages à installer:
 sudo apt install texlive-pstricks
 sudo apt install texlive-latex-extra
+
