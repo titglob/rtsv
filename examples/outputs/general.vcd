@@ -1,0 +1,112 @@
+$date
+   Date text. For example: November 25, 2016.
+$end
+$comment
+
+$end
+$timescale 1ms $end
+$scope module top $end
+$scope module t $end
+$var wire 1 ^3a30100 User->task $end
+$var string 0 $3a30100 User->state $end
+$var wire 1 ^3a302a0 Machine_1->task $end
+$var string 0 $3a302a0 Machine_1->state $end
+$var wire 1 ^3a30440 Machine_2->task $end
+$var string 0 $3a30440 Machine_2->state $end
+$var wire 1 ^3a305e0 Machine_3->task $end
+$var string 0 $3a305e0 Machine_3->state $end
+$var real 0 #3a30780 reel $end
+$var reg 32 @3a308b0 reg $end
+$var parameter 6 @3a309e0 param $end
+$var string 0 $3a30b10 str $end
+$var wire 1 &3a2b0a0 bool $end
+$var wire 5 @3a30c40 wire $end
+$var event 1 !3a2b1d0 event $end
+$var time 16 @3a2b300 time $end
+$var wire 1 ^3a2b5e0 name->task $end
+$var string 0 $3a2b5e0 name->state $end
+$var wire 1 ^3a2b780 lock $end
+$var wire 1 ^3a2b9f0 class->call $end
+$var string 0 $3a2b9f0 class->state $end
+$var wire 1 ^3a2bb20 subc->call $end
+$var string 0 $3a2bb20 subc->state $end
+$upscope $end
+$upscope $end
+0^3a30100 $end
+0^3a302a0 $end
+0^3a30440 $end
+0^3a305e0 $end
+sIDLE $3a30100
+sIDLE $3a302a0
+sIDLE $3a30440
+sIDLE $3a305e0
+#1
+r-35 #3a30780
+b10011 @3a308b0
+b1100 @3a309e0
+scoucou_les_copains $3a30b10
+1&3a2b0a0
+b1 @3a30c40
+0!3a2b1d0
+b0 @3a2b300
+#2
+1^3a30440 $end
+#4
+0^3a30440 $end
+r35 #3a30780
+b110001 @3a308b0
+b1 @3a309e0
+shello $3a30b10
+0&3a2b0a0
+b10 @3a30c40
+0!3a2b1d0
+b100 @3a2b300
+#5
+rnan #3a30780
+bx @3a308b0
+bx @3a309e0
+sUNDEF $3a30b10
+0!3a2b1d0
+#7
+x&3a2b0a0
+bx @3a30c40
+bx @3a2b300
+sPENDING $3a30100
+#17
+0^3a2b5e0 $end
+#18
+0^3a2b5e0 $end
+sCREATED $3a2b5e0
+#19
+x^3a2b5e0 $end
+sT1 $3a30440
+#24
+0^3a2b780 $end
+#26
+1^3a2b780
+#27
+x^3a30440 $end
+#29
+0^3a30440
+#31
+0^3a2b780 $end
+#34
+0^3a2b9f0 $end
+#35
+1^3a2b9f0 $end
+#36
+sSTATE $3a2b9f0
+#37
+0^3a2bb20 $end
+#38
+1^3a2bb20 $end
+#39
+0^3a2bb20 $end
+#40
+0^3a2b9f0 $end
+#41
+x^3a2bb20 $end
+#42
+x^3a2b9f0 $end
+#43
+x^3a2b780 $end
