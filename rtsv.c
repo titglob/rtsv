@@ -1314,10 +1314,10 @@ void exec_decltask(struct rt_msg * m)
    if(vcd_def_out)
    {
       // status of the process at os level
-      write_line(vcd_def_fd, "$var wire 1 ^%x y_%s $end\n", m->obj1, m->obj1->key);
+      write_line(vcd_def_fd, "$var wire 1 ^%x %s->task $end\n", m->obj1, m->obj1->key);
 
       // state of the process
-      write_line(vcd_def_fd, "$var string 0 $%x %s $end\n", m->obj1, m->obj1->key);
+      write_line(vcd_def_fd, "$var string 0 $%x %s->state $end\n", m->obj1, m->obj1->key);
    }
 }
 
@@ -1357,10 +1357,10 @@ void exec_declobj(struct rt_msg * m)
    if(vcd_def_out)
    {
       // status of the object
-      write_line(vcd_def_fd, "$var wire 1 ^%x y_%s $end\n", m->obj1, inst_name);
+      write_line(vcd_def_fd, "$var wire 1 ^%x %s->call $end\n", m->obj1, inst_name);
 
       // state of the object.
-      write_line(vcd_def_fd, "$var string 0 $%x %s $end\n", m->obj1, inst_name);
+      write_line(vcd_def_fd, "$var string 0 $%x %s->state $end\n", m->obj1, inst_name);
    }
 }
 
@@ -1647,10 +1647,10 @@ void exec_creattask(struct rt_msg * m)
    if(vcd_def_out)
    {
       // status of the process
-      write_line(vcd_def_fd, "$var wire 1 ^%x y_%s $end\n", m->obj2, m->obj2->key);
+      write_line(vcd_def_fd, "$var wire 1 ^%x %s->task $end\n", m->obj2, m->obj2->key);
 
       // value (user state) of the process
-      write_line(vcd_def_fd, "$var string 0 $%x %s $end\n", m->obj2, m->obj2->key);
+      write_line(vcd_def_fd, "$var string 0 $%x %s->state $end\n", m->obj2, m->obj2->key);
    }
    if(vcd_out)
    {
@@ -1700,10 +1700,10 @@ void exec_creatobj(struct rt_msg * m)
    if(vcd_def_out)
    {
       // status of the object
-      write_line(vcd_def_fd, "$var wire 1 ^%x y_%s $end\n", m->obj2, inst_name);
+      write_line(vcd_def_fd, "$var wire 1 ^%x %s->call $end\n", m->obj2, inst_name);
 
       // value (user state) of the object.
-      write_line(vcd_def_fd, "$var string 0 $%x %s $end\n", m->obj2, inst_name);
+      write_line(vcd_def_fd, "$var string 0 $%x %s->state $end\n", m->obj2, inst_name);
    }
    if(vcd_out)
    {
